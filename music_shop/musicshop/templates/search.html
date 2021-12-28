@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+  <div class="col-md-12 mt-5">
+
+    <h5 class="text-center">Поиск</h5>
+
+    <div class="col-md-12">
+      <form action="{% url 'search' %}" method="GET">
+        {{ form.media }}
+        <input type="submit" value="Поиск" class="btn btn-success">
+      </form>
+    </div>
+
+    </div>
+    <hr>
+
+    <h5 class="text-center">Результаты поиска: {% if results.count %}{{ results.count }}{% else %}
+        Нет резултатов{% endif %}</h5>
+
+    {% for album in results %}
+            <div class="card col-md-3 p-0 mb-3 mt-3">
+
+                <img src="{{ album.image.url }}" class="card-image-top">
+                  <div class="card-body text-center">
+                  <h5 class="card-title"><a href="{{ album.artist.get_absolute_url }}" class="text-decoration-none">
+                  {{ album.artist.name }}
+                  </a></h5>
+                      <h5 class="card-title"><a href="{{ album.get_absolute_url }}" class="text-decoration-none">
+                      {{ album.name }}
+                </a></h5>
+            </div>
+             <ul class="list-group list-group-flush">
+               <li class="list-group-item">Носитель:<strong>{{ album.media_type.name }}</strong></li>
+               <li class="list-group-item">Дата релиза:<strong>{{ album.release_date|date:"d-m-Y" }}</strong></li>
+               <li class="list-group-item">Жанр:<strong>{{ album.artist.genre.name }}</strong></li>
+               <li class="list-group-item">
+
+                    Наличие:{% if album.stock %}<strong class="badge bg-success">
+                Есть в налични -{{ album.stock }} шт.
+              </strong>{% else %}
+                <strong class="badge bg-danger">Нет в наличии</strong>
+              {% endif %}
+               </li>
+                 </ul>
+
+            <div class="card-body text-center">
+
+                {% if request.user.is_authenticated %}
+                    {% if album.stock %}
+                        {% if album not in cart.products_in_cart %}
+                            <a href="{% url 'add_to_cart' ct_model=album.ct_model slug=album.slug %}">
+                                <button class="btn btn-primary">
+                            Добавить в корзину
+                                    </button>
+                            </a>
+                        {% else %}
+                            <a href="#" class="btn btn-default"  >Добавлен в корзину</a>
+                        {% endif %}
+                    {% else %}
+                            {% if album not in request.user.customer.wishlist.all %}
+                                <a href="{% url 'add_to_wishlist' album_id=album.id %}" class="btn btn-warning">
+                                    Добавить в ожидаемое
+                                </a>
+                            {% else %}
+                                <a href="#" class="btn btn-default">Добавлен в ожидаемое</a>
+                            {% endif %}
+                    {% endif %}
+                {% else %}
+                    <a href="#" class="btn btn-default">
+                        Авторизуйтесь или зарегистрируйтесь, только авторизованные пользователи
+                        могут осуществлять заказы
+                    </a>
+                {% endif %}
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+{% endblock content %}
